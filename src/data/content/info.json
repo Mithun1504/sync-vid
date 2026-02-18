@@ -1,0 +1,156 @@
+{
+    "purpose": {
+        "goals": [
+            "Balance professional authority and emotional safety",
+            "Segment individuals and professionals immediately",
+            "Maintain cohesive brand identity"
+        ],
+        "audiences": [
+            "Individuals seeking help",
+            "Professionals seeking training"
+        ]
+    },
+    "sitemap": [
+        "Home",
+        "About Sync",
+        "For Individuals",
+        "For Professionals",
+        "Library",
+        "Contact & Booking"
+    ],
+    "pages": {
+        "home": {
+            "tagline": "Aligning your worlds.",
+            "headline": "Bridging psychological depth and spiritual expansion.",
+            "primaryOptions": [
+                {
+                    "label": "Start Your Healing Journey",
+                    "target": "For Individuals"
+                },
+                {
+                    "label": "Explore Professional Training",
+                    "target": "For Professionals"
+                }
+            ],
+            "methodOverview": "Integration of Mind + Body + Spirit",
+            "testimonials": [
+                "Individual success stories",
+                "Corporate client logos"
+            ],
+            "events": "Upcoming workshops or retreats",
+            "footer": [
+                "Newsletter signup",
+                "Quick links",
+                "Social links"
+            ]
+        },
+        "about": {
+            "sections": {
+                "story": "Origin of Sync",
+                "founderBio": [
+                    "Clinical and psychological credentials",
+                    "Spiritual and intuitive experience"
+                ],
+                "philosophy": [
+                    "Metamorphosis Blueprint",
+                    "Importance of alignment"
+                ],
+                "faq": "Explanation of psycho-spiritual work"
+            }
+        },
+        "individuals": {
+            "purpose": "Safety, reassurance, emotional connection",
+            "sections": {
+                "alignmentSessions": [
+                    "Psycho-spiritual counseling",
+                    "Integration coaching"
+                ],
+                "deepDiveWork": [
+                    "Shadow work sessions",
+                    "Energy balancing"
+                ],
+                "retreats": [
+                    "Weekend programs",
+                    "Week-long programs"
+                ],
+                "intakeForm": "New client intake form"
+            }
+        },
+        "professionals": {
+            "purpose": "Authority, structure, credibility, ROI",
+            "sections": {
+                "certificationPrograms": {
+                    "name": "Sync Facilitator Training",
+                    "details": [
+                        "Curriculum",
+                        "Dates",
+                        "Pricing"
+                    ]
+                },
+                "corporateConsulting": [
+                    "Organizational alignment workshops",
+                    "Leadership coaching"
+                ],
+                "mentorship": "Integration training for therapists or healers",
+                "applicationForm": "Professional application form"
+            }
+        },
+        "library": {
+            "purpose": "Demonstrate expertise and attract search traffic",
+            "sections": {
+                "blogTopics": [
+                    "Science of Spirit",
+                    "Psychology of Chakras"
+                ],
+                "guidedMeditations": [
+                    "5-Minute Morning Sync"
+                ],
+                "recommendedReading": [
+                    "Psychology books",
+                    "Spirituality books"
+                ]
+            }
+        },
+        "contact": {
+            "sections": [
+                "General inquiry form",
+                "Location or virtual session information",
+                "Discovery call booking (free 15-minute consultation)"
+            ]
+        }
+    },
+    "userJourneys": {
+        "seeker": [
+            "Visit Home",
+            "Choose healing option",
+            "Read 1:1 sessions",
+            "Review philosophy",
+            "Book discovery call"
+        ],
+        "practitioner": [
+            "Visit Home",
+            "Choose training option",
+            "Review certification",
+            "Check founder credentials",
+            "Download syllabus or apply"
+        ]
+    },
+    "functionalDifferentiation": {
+        "individuals": {
+            "tone": "Calm and supportive",
+            "themes": [
+                "Nature imagery",
+                "Soft visuals",
+                "Emotional reassurance"
+            ]
+        },
+        "professionals": {
+            "tone": "Structured and authoritative",
+            "themes": [
+                "Workshops",
+                "Collaboration",
+                "Educational diagrams"
+            ]
+        }
+    }
+}
