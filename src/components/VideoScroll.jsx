@@ -1,12 +1,19 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-// Correct path to video asset
-import videoSrc from '../../assets/video.mp4';
 import Navbar from './Navbar';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Import all frames
+const frameModules = import.meta.glob('../../assets/frames/*.png', { eager: true });
+const frames = Object.keys(frameModules).sort((a, b) => {
+    // Extract numbers from filenames for correct sorting (e.g. 001.png vs 010.png)
+    const numA = parseInt(a.match(/(\d+)\.png$/)[1]);
+    const numB = parseInt(b.match(/(\d+)\.png$/)[1]);
+    return numA - numB;
+}).map(path => frameModules[path].default);
 
 const contentData = [
     {
@@ -67,90 +74,148 @@ const contentData = [
 
 const VideoScroll = () => {
     const containerRef = useRef(null);
-    const videoRef = useRef(null);
-    const videoState = useRef({ currentTime: 0 });
+    const canvasRef = useRef(null);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
+    const [images, setImages] = useState([]);
+
+    // Preload images
+    useEffect(() => {
+        let loadedCount = 0;
+        const totalFrames = frames.length;
+        const loadedImages = [];
+
+        //console.log(`Starting to load ${totalFrames} frames...`);
+
+        frames.forEach((src, index) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                loadedCount++;
+                loadedImages[index] = img;
+                if (loadedCount === totalFrames) {
+                    setImages(loadedImages);
+                    setImagesLoaded(true);
+                    //console.log("All frames loaded");
+                }
+            };
+            img.onerror = () => {
+                // console.error(`Failed to load frame: ${src}`);
+                loadedCount++; // Still count to avoid hanging
+                if (loadedCount === totalFrames) {
+                    setImages(loadedImages);
+                    setImagesLoaded(true);
+                }
+            }
+        });
+    }, []);
+
+    // Render logic
+    const renderFrame = (index, context, canvas) => {
+        if (!images[index] || !canvas || !context) return;
+
+        // Calculate "cover" dimensions
+        const img = images[index];
+        const w = canvas.width;
+        const h = canvas.height;
+        const imgW = img.width;
+        const imgH = img.height;
+
+        const scale = Math.max(w / imgW, h / imgH);
+        const x = (w - (imgW * scale)) / 2;
+        const y = (h - (imgH * scale)) / 2;
+
+        context.clearRect(0, 0, w, h);
+        context.drawImage(img, x, y, imgW * scale, imgH * scale);
+    };
 
     useGSAP((context, contextSafe) => {
-        const video = videoRef.current;
-        if (!video) return;
+        if (!imagesLoaded || images.length === 0) return;
 
-        const setupAnimation = contextSafe(() => {
-            if (!video.duration) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
 
-            // MASTER TIMELINE
-            const tl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: containerRef.current,
-                    start: "top top",
-                    end: "+=10000",
-                    scrub: 1,
-                    pin: true,
-                    markers: false,
-                    id: "master-scrub"
-                }
-            });
-
-            // 1. VIDEO SCRUBBING
-            tl.to(videoState.current, {
-                currentTime: video.duration,
-                duration: 1.0,
-                ease: "none",
-                onUpdate: () => {
-                    if (Math.abs(video.currentTime - videoState.current.currentTime) > 0.05) {
-                        video.currentTime = videoState.current.currentTime;
-                    }
-                }
-            }, 0);
-
-            // 2. CONTENT ANIMATIONS
-            const sections = gsap.utils.toArray('.content-section');
-            sections.forEach((section, i) => {
-                const data = contentData[i];
-
-                // Initial State
-                if (i === 0) {
-                    gsap.set(section, { opacity: 1, y: 0 });
-                    // Only fade out
-                    tl.to(section, { opacity: 0, y: -50, duration: 0.05 }, data.end);
-                } else {
-                    // Fade In
-                    tl.fromTo(section,
-                        { opacity: 0, y: 50 },
-                        { opacity: 1, y: 0, duration: 0.05, ease: "power2.out" },
-                        data.start
-                    );
-                    // Fade Out
-                    tl.to(section,
-                        { opacity: 0, y: -50, duration: 0.05 },
-                        data.end
-                    );
-                }
-            });
-        });
-
-        if (video.readyState >= 1) {
-            setupAnimation();
-        } else {
-            video.onloadedmetadata = setupAnimation;
-        }
-
-        return () => {
-            video.onloadedmetadata = null;
+        // Initial render
+        const updateCanvasSize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            renderFrame(0, ctx, canvas);
         };
 
-    }, { scope: containerRef });
+        window.addEventListener('resize', updateCanvasSize);
+        updateCanvasSize();
+
+        const frameState = { current: 0 };
+        const totalFrames = images.length - 1;
+
+        // MASTER TIMELINE
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: containerRef.current,
+                start: "top top",
+                end: "+=30000",
+                scrub: 1, // Increase scrub time for smoother feel with individual frames if needed
+                pin: true,
+                markers: false,
+                id: "master-scrub"
+            }
+        });
+
+        // 1. FRAME SCRUBBING
+        tl.to(frameState, {
+            current: totalFrames,
+            duration: 1.0,
+            ease: "none",
+            onUpdate: () => {
+                const frameIndex = Math.round(frameState.current);
+                renderFrame(frameIndex, ctx, canvas);
+            }
+        }, 0);
+
+        // 2. CONTENT ANIMATIONS
+        const sections = gsap.utils.toArray('.content-section');
+        sections.forEach((section, i) => {
+            const data = contentData[i];
+
+            // Initial State
+            if (i === 0) {
+                gsap.set(section, { opacity: 1, y: 0 });
+                // Only fade out
+                tl.to(section, { opacity: 0, y: -50, duration: 0.05 }, data.end);
+            } else {
+                // Fade In
+                tl.fromTo(section,
+                    { opacity: 0, y: 50 },
+                    { opacity: 1, y: 0, duration: 0.05, ease: "power2.out" },
+                    data.start
+                );
+                // Fade Out
+                tl.to(section,
+                    { opacity: 0, y: -50, duration: 0.05 },
+                    data.end
+                );
+            }
+        });
+
+        return () => window.removeEventListener('resize', updateCanvasSize);
+
+    }, { scope: containerRef, dependencies: [imagesLoaded] });
 
     return (
         <div ref={containerRef} className="video-scroll-container">
             <Navbar />
-            <video
-                ref={videoRef}
-                className="scroll-video"
-                src={videoSrc}
-                muted
-                playsInline
-                preload="auto"
+
+            {!imagesLoaded && (
+                <div className="loading-screen">
+                    <div className="loader"></div>
+                    <p>Loading Experience...</p>
+                </div>
+            )}
+
+            <canvas
+                ref={canvasRef}
+                className="scroll-canvas"
             />
+
             <div className="video-overlay-gradient"></div>
 
             <div className="content-overlay-container">
