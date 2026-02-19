@@ -77,55 +77,78 @@ const VideoScroll = () => {
     const canvasRef = useRef(null);
     const [imagesLoaded, setImagesLoaded] = useState(false);
     const [images, setImages] = useState([]);
+    const [fadeOut, setFadeOut] = useState(false);
+    const [loaderVisible, setLoaderVisible] = useState(true);
 
-    // Preload images
+    // Preload images with minimum display time
     useEffect(() => {
-        let loadedCount = 0;
-        const totalFrames = frames.length;
-        const loadedImages = [];
+        const loadImages = new Promise((resolve) => {
+            let loadedCount = 0;
+            const totalFrames = frames.length;
+            const loadedImages = [];
 
-        //console.log(`Starting to load ${totalFrames} frames...`);
+            frames.forEach((src, index) => {
+                const img = new Image();
+                img.src = src;
+                img.onload = () => {
+                    loadedCount++;
+                    loadedImages[index] = img;
+                    if (loadedCount === totalFrames) resolve(loadedImages);
+                };
+                img.onerror = () => {
+                    loadedCount++;
+                    if (loadedCount === totalFrames) resolve(loadedImages);
+                };
+            });
+        });
 
-        frames.forEach((src, index) => {
-            const img = new Image();
-            img.src = src;
-            img.onload = () => {
-                loadedCount++;
-                loadedImages[index] = img;
-                if (loadedCount === totalFrames) {
-                    setImages(loadedImages);
-                    setImagesLoaded(true);
-                    //console.log("All frames loaded");
-                }
-            };
-            img.onerror = () => {
-                // console.error(`Failed to load frame: ${src}`);
-                loadedCount++; // Still count to avoid hanging
-                if (loadedCount === totalFrames) {
-                    setImages(loadedImages);
-                    setImagesLoaded(true);
-                }
-            }
+        const minTimePromise = new Promise(resolve => setTimeout(resolve, 2000));
+
+        Promise.all([loadImages, minTimePromise]).then(([loadedImages]) => {
+            setImages(loadedImages);
+            setImagesLoaded(true); // Render canvas immediately behind loader
+            setFadeOut(true);      // Trigger fade out
+
+            // Remove from DOM after fade animation
+            setTimeout(() => {
+                setLoaderVisible(false);
+            }, 500);
         });
     }, []);
 
-    // Render logic
+    // Render logic with interpolation
     const renderFrame = (index, context, canvas) => {
-        if (!images[index] || !canvas || !context) return;
+        if (!images.length || !canvas || !context) return;
 
-        // Calculate "cover" dimensions
-        const img = images[index];
         const w = canvas.width;
         const h = canvas.height;
-        const imgW = img.width;
-        const imgH = img.height;
-
-        const scale = Math.max(w / imgW, h / imgH);
-        const x = (w - (imgW * scale)) / 2;
-        const y = (h - (imgH * scale)) / 2;
-
         context.clearRect(0, 0, w, h);
-        context.drawImage(img, x, y, imgW * scale, imgH * scale);
+
+        // Get integer parts
+        const idx1 = Math.floor(index);
+        const idx2 = Math.min(idx1 + 1, images.length - 1);
+        const alpha = index - idx1; // fractional part for opacity
+
+        const drawImage = (img, opacity) => {
+            if (!img) return;
+            const imgW = img.width;
+            const imgH = img.height;
+            const scale = Math.max(w / imgW, h / imgH);
+            const x = (w - (imgW * scale)) / 2;
+            const y = (h - (imgH * scale)) / 2;
+
+            context.globalAlpha = opacity;
+            context.drawImage(img, x, y, imgW * scale, imgH * scale);
+            context.globalAlpha = 1.0; // Reset
+        };
+
+        // Draw current frame
+        drawImage(images[idx1], 1);
+
+        // Blend next frame if needed
+        if (alpha > 0 && idx1 !== idx2) {
+            drawImage(images[idx2], alpha);
+        }
     };
 
     useGSAP((context, contextSafe) => {
@@ -153,7 +176,7 @@ const VideoScroll = () => {
                 trigger: containerRef.current,
                 start: "top top",
                 end: "+=30000",
-                scrub: 1, // Increase scrub time for smoother feel with individual frames if needed
+                scrub: 3,
                 pin: true,
                 markers: false,
                 id: "master-scrub"
@@ -166,8 +189,8 @@ const VideoScroll = () => {
             duration: 1.0,
             ease: "none",
             onUpdate: () => {
-                const frameIndex = Math.round(frameState.current);
-                renderFrame(frameIndex, ctx, canvas);
+                // Pass float value for interpolation
+                renderFrame(frameState.current, ctx, canvas);
             }
         }, 0);
 
@@ -204,9 +227,9 @@ const VideoScroll = () => {
         <div ref={containerRef} className="video-scroll-container">
             <Navbar />
 
-            {!imagesLoaded && (
-                <div className="loading-screen">
-                    <div className="loader"></div>
+            {loaderVisible && (
+                <div className={`loading-screen ${fadeOut ? 'fade-out' : ''}`}>
+                    <img src="/assets/images/favicon.png" alt="Loading..." className="loading-logo" />
                     <p>Loading Experience...</p>
                 </div>
             )}
