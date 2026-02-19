@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { useGSAP } from '@gsap/react';
 import Navbar from './Navbar';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 // Import all frames
 const frameModules = import.meta.glob('../../assets/frames/*.png', { eager: true });
@@ -223,9 +224,28 @@ const VideoScroll = () => {
 
     }, { scope: containerRef, dependencies: [imagesLoaded] });
 
+    const handleNavigate = (id) => {
+        const item = contentData.find(d => d.id === id);
+        if (!item) return;
+
+        const st = ScrollTrigger.getById("master-scrub");
+        if (st) {
+            const totalDistance = st.end - st.start;
+            const targetPos = st.start + (totalDistance * item.start);
+
+            // Calculate duration based on distance to keep speed roughly consistent, but cap it
+            // Or just use a fixed "fast but smooth" duration as requested
+            gsap.to(window, {
+                scrollTo: targetPos,
+                duration: 4.5, // 2.5s to traverse. Adjust as needed.
+                ease: "power2.inOut"
+            });
+        }
+    };
+
     return (
         <div ref={containerRef} className="video-scroll-container">
-            <Navbar />
+            <Navbar onNavigate={handleNavigate} />
 
             {loaderVisible && (
                 <div className={`loading-screen ${fadeOut ? 'fade-out' : ''}`}>

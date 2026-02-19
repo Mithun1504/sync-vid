@@ -1,11 +1,19 @@
 import React from 'react';
 import logo from '/assets/images/logo.png'; // Updated path based on user info
 
-const Navbar = () => {
+const Navbar = ({ onNavigate }) => {
     const [isOpen, setIsOpen] = React.useState(false);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
+    };
+
+    const handleLinkClick = (e, id) => {
+        e.preventDefault();
+        setIsOpen(false);
+        if (onNavigate) {
+            onNavigate(id);
+        }
     };
 
     return (
@@ -22,12 +30,12 @@ const Navbar = () => {
                 </div>
 
                 <ul className={`navbar-links ${isOpen ? 'active' : ''}`}>
-                    <li><a href="#home" onClick={() => setIsOpen(false)}>Home</a></li>
-                    <li><a href="#about" onClick={() => setIsOpen(false)}>About</a></li>
-                    <li><a href="#individuals" onClick={() => setIsOpen(false)}>Individuals</a></li>
-                    <li><a href="#professionals" onClick={() => setIsOpen(false)}>Professionals</a></li>
-                    <li><a href="#library" onClick={() => setIsOpen(false)}>Library</a></li>
-                    <li><button className="nav-cta">Book Now</button></li>
+                    <li><a href="#home" onClick={(e) => handleLinkClick(e, 'home')}>Home</a></li>
+                    <li><a href="#about" onClick={(e) => handleLinkClick(e, 'about')}>About</a></li>
+                    <li><a href="#individuals" onClick={(e) => handleLinkClick(e, 'individuals')}>Individuals</a></li>
+                    <li><a href="#professionals" onClick={(e) => handleLinkClick(e, 'professionals')}>Professionals</a></li>
+                    <li><a href="#library" onClick={(e) => handleLinkClick(e, 'library')}>Library</a></li>
+                    <li><button className="nav-cta"><a href="#contact" onClick={(e) => handleLinkClick(e, 'contact')}>Book Now</a></button></li>
                 </ul>
             </div>
         </nav>
