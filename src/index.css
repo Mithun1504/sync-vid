@@ -53,7 +53,7 @@ body {
   padding: 0.2rem 5%;
   box-sizing: border-box;
   z-index: 1000;
-  background: rgba(11, 11, 11, 0.05);
+  background: #012203;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -78,7 +78,7 @@ body {
 .navbar-logo img {
   height: 70px;
   width: auto;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+  /* filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2)); */
   transition: transform 0.3s ease;
 }
 
@@ -354,7 +354,7 @@ body {
 
 /* Footer */
 .footer {
-  background: #261C15;
+  background: #012203;
   padding: 5rem 10% 2rem;
   color: white;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
