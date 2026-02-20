@@ -7,14 +7,11 @@ import Navbar from './Navbar';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-// Import all frames
-const frameModules = import.meta.glob('../../assets/frames/*.png', { eager: true });
-const frames = Object.keys(frameModules).sort((a, b) => {
-    // Extract numbers from filenames for correct sorting (e.g. 001.png vs 010.png)
-    const numA = parseInt(a.match(/(\d+)\.png$/)[1]);
-    const numB = parseInt(b.match(/(\d+)\.png$/)[1]);
-    return numA - numB;
-}).map(path => frameModules[path].default);
+const FRAME_COUNT = 374;
+const frames = Array.from({ length: FRAME_COUNT }, (_, i) => {
+    const frameNumber = String(i + 1).padStart(3, '0');
+    return `${import.meta.env.VITE_S3_ASSETS_URL}/assets/frames/${frameNumber}.png`;
+});
 
 const contentData = [
     {
