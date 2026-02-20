@@ -173,7 +173,7 @@ const VideoScroll = () => {
             scrollTrigger: {
                 trigger: containerRef.current,
                 start: "top top",
-                end: "+=30000",
+                end: "+=20000",
                 scrub: 3,
                 pin: true,
                 markers: false,
