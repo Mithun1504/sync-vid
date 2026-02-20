@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 const FRAME_COUNT = 374;
 const frames = Array.from({ length: FRAME_COUNT }, (_, i) => {
     const frameNumber = String(i + 1).padStart(3, '0');
-    return `${import.meta.env.VITE_S3_ASSETS_URL}/assets/frames/${frameNumber}.png`;
+    return `${import.meta.env.VITE_S3_ASSETS_URL}/assets/frames/${frameNumber}.webp`;
 });
 
 const contentData = [
@@ -74,49 +74,53 @@ const VideoScroll = () => {
     const containerRef = useRef(null);
     const canvasRef = useRef(null);
     const [imagesLoaded, setImagesLoaded] = useState(false);
-    const [images, setImages] = useState([]);
+    const imagesRef = useRef([]); // Use ref to store images without re-renders
     const [fadeOut, setFadeOut] = useState(false);
     const [loaderVisible, setLoaderVisible] = useState(true);
 
-    // Preload images with minimum display time
+    // Preload images progressively
     useEffect(() => {
-        const loadImages = new Promise((resolve) => {
-            let loadedCount = 0;
-            const totalFrames = frames.length;
-            const loadedImages = [];
+        let loadedCount = 0;
+        const MIN_FRAMES_TO_START = 50;
 
-            frames.forEach((src, index) => {
-                const img = new Image();
-                img.src = src;
-                img.onload = () => {
-                    loadedCount++;
-                    loadedImages[index] = img;
-                    if (loadedCount === totalFrames) resolve(loadedImages);
-                };
-                img.onerror = () => {
-                    loadedCount++;
-                    if (loadedCount === totalFrames) resolve(loadedImages);
-                };
-            });
-        });
+        // Initialize array to preserve order
+        imagesRef.current = new Array(frames.length);
 
-        const minTimePromise = new Promise(resolve => setTimeout(resolve, 2000));
+        frames.forEach((src, index) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                imagesRef.current[index] = img;
+                loadedCount++;
 
-        Promise.all([loadImages, minTimePromise]).then(([loadedImages]) => {
-            setImages(loadedImages);
-            setImagesLoaded(true); // Render canvas immediately behind loader
-            setFadeOut(true);      // Trigger fade out
-
-            // Remove from DOM after fade animation
-            setTimeout(() => {
-                setLoaderVisible(false);
-            }, 500);
+                // Start experience if we have enough frames OR if we're done
+                if (!imagesLoaded && (loadedCount === MIN_FRAMES_TO_START || loadedCount === frames.length)) {
+                    setImagesLoaded(true);
+                    setFadeOut(true);
+                    setTimeout(() => {
+                        setLoaderVisible(false);
+                    }, 500);
+                }
+            };
+            img.onerror = () => {
+                console.error(`Failed to load frame ${index}`);
+                loadedCount++;
+                // Still count errors so we don't hang if everything fails
+                if (!imagesLoaded && (loadedCount === MIN_FRAMES_TO_START || loadedCount === frames.length)) {
+                    setImagesLoaded(true);
+                    setFadeOut(true);
+                    setTimeout(() => {
+                        setLoaderVisible(false);
+                    }, 500);
+                }
+            };
         });
     }, []);
 
     // Render logic with interpolation
     const renderFrame = (index, context, canvas) => {
-        if (!images.length || !canvas || !context) return;
+        if (!canvas || !context) return;
+        const images = imagesRef.current; // Use ref instead of state
 
         const w = canvas.width;
         const h = canvas.height;
@@ -124,7 +128,7 @@ const VideoScroll = () => {
 
         // Get integer parts
         const idx1 = Math.floor(index);
-        const idx2 = Math.min(idx1 + 1, images.length - 1);
+        const idx2 = Math.min(idx1 + 1, FRAME_COUNT - 1);
         const alpha = index - idx1; // fractional part for opacity
 
         const drawImage = (img, opacity) => {
@@ -150,7 +154,7 @@ const VideoScroll = () => {
     };
 
     useGSAP((context, contextSafe) => {
-        if (!imagesLoaded || images.length === 0) return;
+        if (!imagesLoaded) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
@@ -166,7 +170,7 @@ const VideoScroll = () => {
         updateCanvasSize();
 
         const frameState = { current: 0 };
-        const totalFrames = images.length - 1;
+        const totalFrames = FRAME_COUNT - 1;
 
         // MASTER TIMELINE
         const tl = gsap.timeline({
