@@ -1,7 +1,7 @@
-import React from 'react';
-import VideoScroll from './components/VideoScroll';
-import Footer from './components/Footer';
-import './index.css';
+import React from "react";
+import VideoScroll from "./components/VideoScroll";
+import Footer from "./components/Footer";
+import "./index.css";
 
 function App() {
   return (

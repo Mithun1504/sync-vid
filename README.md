@@ -14,3 +14,22 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Environment Setup
+
+This project requires one Vite environment variable:
+
+- `VITE_S3_ASSETS_URL`: Base URL for hosted frame assets.
+
+### Steps
+
+1. Open `.env` in the project root.
+2. Set the value, for example:
+
+```env
+VITE_S3_ASSETS_URL=https://your-bucket.s3.amazonaws.com
+```
+
+3. Start the app with `npm run dev`.
+
+You can also use `.env.example` as a reference.
