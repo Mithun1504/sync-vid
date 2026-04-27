@@ -4,6 +4,16 @@ import logo from "/assets/images/logo.png"; // Updated path based on user info
 const Navbar = ({ onNavigate }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const navLinks = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "Problem" },
+    { id: "individuals", label: "Your Approach" },
+    { id: "offerings", label: "Offerings" },
+    { id: "outcomes", label: "Outcomes" },
+    { id: "testimonials", label: "Testimonials" },
+    { id: "philosophy", label: "Philosophy" },
+  ];
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -16,75 +26,65 @@ const Navbar = ({ onNavigate }) => {
     }
   };
 
+  const renderLinks = (className) =>
+    navLinks.map(({ id, label }) => (
+      <li key={id} className={className}>
+        <a href={`#${id}`} onClick={(e) => handleLinkClick(e, id)}>
+          {label}
+        </a>
+      </li>
+    ));
+
   return (
-    <nav className={`navbar ${isOpen ? "open" : ""}`}>
+    <nav className={`navbar ${isOpen ? "open" : ""}`} aria-label="Primary">
       <div className="navbar-container">
-        <div className="navbar-logo">
+        <a
+          className="navbar-logo"
+          href="#home"
+          onClick={(e) => handleLinkClick(e, "home")}
+        >
           <img src={logo} alt="Sync Logo" />
-        </div>
+        </a>
 
-        <div className="menu-icon" onClick={toggleMenu}>
-          <div className={isOpen ? "bar open" : "bar"}></div>
-          <div className={isOpen ? "bar open" : "bar"}></div>
-          <div className={isOpen ? "bar open" : "bar"}></div>
-        </div>
-
-        <ul className={`navbar-links ${isOpen ? "active" : ""}`}>
-          <li>
-            <a href="#home" onClick={(e) => handleLinkClick(e, "home")}>
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="#about" onClick={(e) => handleLinkClick(e, "about")}>
-              Problem
-            </a>
-          </li>
-          <li>
-            <a
-              href="#individuals"
-              onClick={(e) => handleLinkClick(e, "individuals")}
-            >
-              Your Approach
-            </a>
-          </li>
-          <li>
-            <a
-              href="#offerings"
-              onClick={(e) => handleLinkClick(e, "offerings")}
-            >
-              Offerings
-            </a>
-          </li>
-          <li>
-            <a href="#outcomes" onClick={(e) => handleLinkClick(e, "outcomes")}>
-              Outcomes
-            </a>
-          </li>
-          <li>
-            <a
-              href="#testimonials"
-              onClick={(e) => handleLinkClick(e, "testimonials")}
-            >
-              Testimonials
-            </a>
-          </li>
-          <li>
-            <a
-              href="#philosophy"
-              onClick={(e) => handleLinkClick(e, "philosophy")}
-            >
-              Philosophy
-            </a>
-          </li>
-          <li>
-            <button className="nav-cta">
-              <a href="#contact" onClick={(e) => handleLinkClick(e, "contact")}>
-                Book Now
-              </a>
-            </button>
-          </li>
+        <ul className="navbar-links navbar-links-desktop">
+          {renderLinks("navbar-link-item")}
         </ul>
+
+        <div className="navbar-actions">
+          <a
+            className="nav-cta nav-cta-desktop"
+            href="#contact"
+            onClick={(e) => handleLinkClick(e, "contact")}
+          >
+            Book a Session
+          </a>
+
+          <button
+            type="button"
+            className="menu-icon"
+            onClick={toggleMenu}
+            aria-expanded={isOpen}
+            aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+          >
+            <div className={isOpen ? "bar open" : "bar"}></div>
+            <div className={isOpen ? "bar open" : "bar"}></div>
+            <div className={isOpen ? "bar open" : "bar"}></div>
+          </button>
+        </div>
+      </div>
+
+      <div className={`navbar-mobile-panel ${isOpen ? "active" : ""}`}>
+        <ul className="navbar-links navbar-links-mobile">
+          {renderLinks("navbar-link-item-mobile")}
+        </ul>
+
+        <a
+          className="nav-cta nav-cta-mobile"
+          href="#contact"
+          onClick={(e) => handleLinkClick(e, "contact")}
+        >
+          Book a Session
+        </a>
       </div>
     </nav>
   );

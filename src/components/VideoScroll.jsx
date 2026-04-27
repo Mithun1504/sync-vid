@@ -18,11 +18,15 @@ const frames = Array.from({ length: FRAME_COUNT }, (_, i) => {
 const contentData = [
   {
     id: "home",
-    title: "Sync Your Inner World. Transform Your Outer Reality.",
+    kicker: "Psychology · Spirituality · Integration",
+    title: "Align your inner world with your outer life.",
     subtitle:
-      "For individuals seeking a quieter alignment between how they think, feel, and act.",
-    text: "Bring clarity and steadiness to both inner and outer life.",
-    ctaLabel: "Start Your Journey",
+      "A structured approach that integrates mind, body, and spirit for deeper clarity, grounded growth, and aligned action.",
+    text: "The Sync Method brings together psychological depth, spiritual expansion, and practical transformation.",
+    ctaLabel: "Explore the Method",
+    ctaTarget: "individuals",
+    secondaryCtaLabel: "Book a Session",
+    secondaryCtaTarget: "contact",
     position: "left",
     start: 0.0,
     end: 0.12,
@@ -114,9 +118,9 @@ const contentData = [
 
 const sectionLayout = {
   home: {
-    top: "44%",
-    width: "42%",
-    left: "10%",
+    top: "53%",
+    width: "44%",
+    left: "7%",
   },
   testimonials: {
     top: "50%",
@@ -417,6 +421,23 @@ const VideoScroll = () => {
     setActiveDetailSection(null);
   };
 
+  const handleContentAction = (item, event) => {
+    if (item.isExpandable) {
+      openSectionDetail(item.detailKey, event.currentTarget);
+      return;
+    }
+
+    if (item.ctaTarget) {
+      handleNavigate(item.ctaTarget);
+    }
+  };
+
+  const handleSecondaryAction = (item) => {
+    if (item.secondaryCtaTarget) {
+      handleNavigate(item.secondaryCtaTarget);
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -443,28 +464,39 @@ const VideoScroll = () => {
         {contentData.map((item) => (
           <div
             key={item.id}
-            className={`content-section position-${item.id === "testimonials" ? "right" : item.position}`}
+            className={`content-section content-section-${item.id} position-${item.id === "testimonials" ? "right" : item.position}`}
           >
+            {item.kicker ? (
+              <p className="content-kicker">{item.kicker}</p>
+            ) : null}
             <h2 className="content-title">{item.title}</h2>
             <h3 className="content-subtitle">{item.subtitle}</h3>
             <p className="content-text">{item.text}</p>
-            <button
-              type="button"
-              className="cta-button"
-              aria-haspopup={item.isExpandable ? "dialog" : undefined}
-              aria-expanded={
-                item.isExpandable
-                  ? activeDetailSection === item.detailKey
-                  : undefined
-              }
-              onClick={
-                item.isExpandable
-                  ? (event) => openSectionDetail(item.detailKey, event.currentTarget)
-                  : undefined
-              }
-            >
-              {item.ctaLabel || "Learn More"}
-            </button>
+            <div className="content-actions">
+              <button
+                type="button"
+                className={`cta-button ${item.secondaryCtaLabel ? "cta-button-primary" : ""}`}
+                aria-haspopup={item.isExpandable ? "dialog" : undefined}
+                aria-expanded={
+                  item.isExpandable
+                    ? activeDetailSection === item.detailKey
+                    : undefined
+                }
+                onClick={(event) => handleContentAction(item, event)}
+              >
+                {item.ctaLabel || "Learn More"}
+              </button>
+
+              {item.secondaryCtaLabel ? (
+                <button
+                  type="button"
+                  className="cta-button cta-button-secondary"
+                  onClick={() => handleSecondaryAction(item)}
+                >
+                  {item.secondaryCtaLabel}
+                </button>
+              ) : null}
+            </div>
           </div>
         ))}
       </div>
@@ -475,7 +507,13 @@ const VideoScroll = () => {
         onClose={closeSectionDetail}
       />
 
-      <div className="scroll-indicator">Scroll to Explore</div>
+      <div className="scroll-indicator">
+        <span>Scroll to Explore</span>
+        <span className="scroll-indicator-arrow" aria-hidden="true">
+          <span></span>
+          <span></span>
+        </span>
+      </div>
     </div>
   );
 };
