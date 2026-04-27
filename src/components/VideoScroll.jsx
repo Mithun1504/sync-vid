@@ -4,8 +4,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
 import Navbar from "./Navbar";
-import SectionDetailModal from "./SectionDetailModal";
-import { getSectionDetail } from "./sectionDetails";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -136,72 +134,6 @@ const VideoScroll = () => {
   const imagesRef = useRef([]); // Use ref to store images without re-renders
   const [fadeOut, setFadeOut] = useState(false);
   const [loaderVisible, setLoaderVisible] = useState(true);
-  const [activeDetailSection, setActiveDetailSection] = useState(null);
-  const lastTriggerRef = useRef(null);
-  const isModalOpen = Boolean(activeDetailSection);
-  const activeDetailContent = activeDetailSection
-    ? getSectionDetail(activeDetailSection)
-    : null;
-
-  useEffect(() => {
-    if (!isModalOpen) return undefined;
-
-    const root = document.documentElement;
-    const { body } = document;
-    const originalStyle = {
-      rootOverflow: root.style.overflow,
-      rootOverscrollBehavior: root.style.overscrollBehavior,
-      overflow: body.style.overflow,
-      overscrollBehavior: body.style.overscrollBehavior,
-    };
-
-    const preventScroll = (event) => {
-      if (event.target.closest(".section-detail-body")) return;
-      event.preventDefault();
-    };
-
-    const preventScrollKeys = (event) => {
-      const scrollKeys = [
-        "ArrowUp",
-        "ArrowDown",
-        "PageUp",
-        "PageDown",
-        "Home",
-        "End",
-        " ",
-      ];
-
-      if (!scrollKeys.includes(event.key)) return;
-      if (event.target.closest(".section-detail-body")) return;
-
-      event.preventDefault();
-    };
-
-    gsap.killTweensOf(window);
-    root.style.overflow = "hidden";
-    root.style.overscrollBehavior = "none";
-    body.style.overflow = "hidden";
-    body.style.overscrollBehavior = "none";
-
-    window.addEventListener("wheel", preventScroll, { passive: false });
-    window.addEventListener("touchmove", preventScroll, { passive: false });
-    window.addEventListener("keydown", preventScrollKeys, { passive: false });
-
-    return () => {
-      root.style.overflow = originalStyle.rootOverflow;
-      root.style.overscrollBehavior = originalStyle.rootOverscrollBehavior;
-      body.style.overflow = originalStyle.overflow;
-      body.style.overscrollBehavior = originalStyle.overscrollBehavior;
-      window.removeEventListener("wheel", preventScroll);
-      window.removeEventListener("touchmove", preventScroll);
-      window.removeEventListener("keydown", preventScrollKeys);
-    };
-  }, [isModalOpen]);
-
-  useEffect(() => {
-    if (isModalOpen || !lastTriggerRef.current) return;
-    lastTriggerRef.current.focus();
-  }, [isModalOpen]);
 
   // Preload images progressively
   useEffect(() => {
@@ -409,21 +341,26 @@ const VideoScroll = () => {
     }
   };
 
-  const openSectionDetail = (id, triggerElement) => {
-    const detail = getSectionDetail(id);
-    if (!detail) return;
-
-    lastTriggerRef.current = triggerElement;
-    setActiveDetailSection(id);
+  const openDetailPage = (detailKey) => {
+    const params = new URLSearchParams();
+    params.set("section", detailKey);
+    window.open(`/details?${params.toString()}`, "_blank", "noopener,noreferrer");
   };
 
-  const closeSectionDetail = () => {
-    setActiveDetailSection(null);
+  const handleHeadingClick = (item) => {
+    if (item.detailKey) {
+      openDetailPage(item.detailKey);
+      return;
+    }
+
+    if (item.ctaTarget) {
+      handleNavigate(item.ctaTarget);
+    }
   };
 
-  const handleContentAction = (item, event) => {
-    if (item.isExpandable) {
-      openSectionDetail(item.detailKey, event.currentTarget);
+  const handlePrimaryAction = (item) => {
+    if (item.detailKey) {
+      openDetailPage(item.detailKey);
       return;
     }
 
@@ -434,14 +371,14 @@ const VideoScroll = () => {
 
   const handleSecondaryAction = (item) => {
     if (item.secondaryCtaTarget) {
-      handleNavigate(item.secondaryCtaTarget);
+      openDetailPage(item.secondaryCtaTarget);
     }
   };
 
   return (
     <div
       ref={containerRef}
-      className={`video-scroll-container ${isModalOpen ? "modal-open" : ""}`}
+      className="video-scroll-container"
     >
       <Navbar onNavigate={handleNavigate} />
 
@@ -469,43 +406,55 @@ const VideoScroll = () => {
             {item.kicker ? (
               <p className="content-kicker">{item.kicker}</p>
             ) : null}
-            <h2 className="content-title">{item.title}</h2>
-            <h3 className="content-subtitle">{item.subtitle}</h3>
-            <p className="content-text">{item.text}</p>
-            <div className="content-actions">
+            <h2 className="content-title">
               <button
                 type="button"
-                className={`cta-button ${item.secondaryCtaLabel ? "cta-button-primary" : ""}`}
-                aria-haspopup={item.isExpandable ? "dialog" : undefined}
-                aria-expanded={
-                  item.isExpandable
-                    ? activeDetailSection === item.detailKey
-                    : undefined
+                className={`content-title-button ${item.detailKey || item.ctaTarget ? "is-actionable" : ""}`}
+                onClick={() => handleHeadingClick(item)}
+                disabled={!item.detailKey && !item.ctaTarget}
+                aria-label={
+                  item.detailKey
+                    ? `Open ${item.title} details in a new page`
+                    : item.ctaTarget
+                      ? `Navigate to ${item.title}`
+                      : undefined
                 }
-                onClick={(event) => handleContentAction(item, event)}
               >
-                {item.ctaLabel || "Learn More"}
+                {item.title}
               </button>
+            </h2>
 
-              {item.secondaryCtaLabel ? (
-                <button
-                  type="button"
-                  className="cta-button cta-button-secondary"
-                  onClick={() => handleSecondaryAction(item)}
-                >
-                  {item.secondaryCtaLabel}
-                </button>
-              ) : null}
-            </div>
+            {item.subtitle ? (
+              <p className="content-subtitle">{item.subtitle}</p>
+            ) : null}
+            {item.text ? <p className="content-text">{item.text}</p> : null}
+
+            {item.ctaLabel || item.secondaryCtaLabel ? (
+              <div className="content-actions">
+                {item.ctaLabel ? (
+                  <button
+                    type="button"
+                    className="content-cta content-cta-primary"
+                    onClick={() => handlePrimaryAction(item)}
+                  >
+                    {item.ctaLabel}
+                  </button>
+                ) : null}
+
+                {item.secondaryCtaLabel ? (
+                  <button
+                    type="button"
+                    className="content-cta content-cta-secondary"
+                    onClick={() => handleSecondaryAction(item)}
+                  >
+                    {item.secondaryCtaLabel}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
-
-      <SectionDetailModal
-        isOpen={isModalOpen}
-        section={activeDetailContent}
-        onClose={closeSectionDetail}
-      />
 
       <div className="scroll-indicator">
         <span>Scroll to Explore</span>

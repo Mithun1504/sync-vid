@@ -1,4 +1,30 @@
 export const sectionDetails = {
+  home: {
+    id: "home",
+    title: "Align your inner world with your outer life.",
+    intro:
+      "The Sync Method integrates psychological depth, spiritual expansion, and practical transformation so clarity becomes usable, not just conceptual.",
+    body: [
+      {
+        type: "list",
+        title: "What this experience is",
+        items: [
+          "A calm, structured path to clarity and aligned action",
+          "A blend of mind, body, and spirit (without bypassing reality)",
+          "Designed for real decisions, relationships, and responsibilities",
+        ],
+      },
+      {
+        type: "list",
+        title: "Where to start",
+        items: [
+          "Explore the approach if you feel subtle inner friction",
+          "Review the offerings to choose a format that fits",
+          "Book a call if you want guidance on the right next step",
+        ],
+      },
+    ],
+  },
   about: {
     id: "about",
     title:
@@ -184,6 +210,28 @@ export const sectionDetails = {
           "Depth without performance",
           "Action that grows from inner steadiness instead of pressure",
         ],
+      },
+    ],
+  },
+  contact: {
+    id: "contact",
+    title: "Start Your Journey",
+    intro:
+      "If you're unsure where to begin, a short discovery call helps clarify what kind of support fits your current season.",
+    body: [
+      {
+        type: "list",
+        title: "Discovery call",
+        items: [
+          "Free 15-minute conversation",
+          "Clarify what you're feeling and what you want to shift",
+          "Leave with a clear next step (even if we don't work together)",
+        ],
+      },
+      {
+        type: "paragraph",
+        content:
+          "To keep the experience focused, booking details can be added here next (calendar link, contact form, or email).",
       },
     ],
   },
